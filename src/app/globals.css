@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=Outfit:wght@300..800&family=Inter:wght@300..700&display=swap');
+@import "tailwindcss";
+
+:root {
+  --background: #FAF8F5; /* Parchment cream */
+  --foreground: #2D2A26; /* Deep charcoal brown */
+  
+  --card-bg: #F4EFE6; /* Soft paper card background */
+  --card-border: #E8DFD0;
+  
+  --primary: #9E523A; /* Terracotta clay accent */
+  --secondary: #586953; /* Sage green */
+  --accent: #D29A42; /* Gold highlight */
+  
+  --font-display: 'Outfit', sans-serif;
+  --font-serif: 'Lora', serif;
+  --font-ui: 'Inter', sans-serif;
+}
+
+@theme {
+  --color-parchment: var(--background);
+  --color-ink: var(--foreground);
+  --color-paper: var(--card-bg);
+  --color-book-border: var(--card-border);
+  --color-terracotta: var(--primary);
+  --color-sage: var(--secondary);
+  --color-gold: var(--accent);
+  
+  --font-display: var(--font-display);
+  --font-serif: var(--font-serif);
+  --font-ui: var(--font-ui);
+}
+
+/* Base style resets */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-ui);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  color: var(--foreground);
+}
+
+.font-literary {
+  font-family: var(--font-serif);
+}
+
+/* Custom scrollbar to match theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+  opacity: 0.8;
+}
+
+/* Subtle parchment texture look via grid pattern */
+.bg-parchment-pattern {
+  background-color: #FAF8F5;
+  background-image: 
+    radial-gradient(rgba(45, 42, 38, 0.03) 1px, transparent 0),
+    radial-gradient(rgba(45, 42, 38, 0.03) 1px, transparent 0);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+
+/* Smooth fade transitions */
+.transition-all-custom {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Card glassmorphism-parchment effect */
+.museum-card {
+  background: rgba(244, 239, 230, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 4px 20px -2px rgba(45, 42, 38, 0.04);
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.museum-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -4px rgba(45, 42, 38, 0.08);
+  border-color: #D8CCB9;
+}
