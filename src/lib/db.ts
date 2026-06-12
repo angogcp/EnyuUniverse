@@ -126,10 +126,10 @@ const DEFAULT_USERS: User[] = [
   },
   {
     id: 'user-child',
-    name: '渊裕',
-    email: 'yuanyu.child@example.com',
+    name: '渊裕 (Enyu)',
+    email: 'enyu.child@example.com',
     role: 'Child',
-    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=child',
+    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=enyu',
     created_at: '2024-01-01T00:00:00Z',
   },
   {
@@ -556,6 +556,27 @@ class ProjectJDatabase {
       this.timelineEvents = getOrInit('timeline_events', DEFAULT_TIMELINE_EVENTS);
       this.dreams = getOrInit('dreams', DEFAULT_DREAMS);
       this.travelEntries = getOrInit('travel_entries', DEFAULT_TRAVEL_ENTRIES);
+
+      // ── Data Migration: always sync user display names/emails to current defaults ──
+      // This ensures stale localStorage data (e.g. old name "小杰 (Leo)") is corrected.
+      let usersMigrated = false;
+      DEFAULT_USERS.forEach(defaultUser => {
+        const idx = this.users.findIndex(u => u.id === defaultUser.id);
+        if (idx !== -1) {
+          const current = this.users[idx];
+          if (current.name !== defaultUser.name || current.email !== defaultUser.email || current.role !== defaultUser.role) {
+            this.users[idx] = { ...current, name: defaultUser.name, email: defaultUser.email, role: defaultUser.role };
+            usersMigrated = true;
+          }
+        } else {
+          // Add any new default user that didn't exist before
+          this.users.push(defaultUser);
+          usersMigrated = true;
+        }
+      });
+      if (usersMigrated) {
+        this.saveToStorage('users', this.users);
+      }
     } catch (e) {
       console.error('Failed to load database from localStorage, fallback to defaults', e);
       this.users = [...DEFAULT_USERS];

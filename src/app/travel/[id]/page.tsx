@@ -79,7 +79,7 @@ export default function TravelDetailPage() {
 
   // Find sender helpers
   const getUserName = (userId: string) => {
-    if (userId === 'user-child') return '渊裕';
+    if (userId === 'user-child') return '渊裕 (Enyu)';
     if (userId === 'user-father') return '爸爸';
     return users.find(u => u.id === userId)?.name || '未知成员';
   };
