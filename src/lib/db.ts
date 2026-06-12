@@ -99,6 +99,21 @@ export interface TravelEntry {
   updated_at: string;
 }
 
+export type AchievementCategory = 'creation' | 'travel' | 'dream' | 'world' | 'social' | 'special';
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;        // Emoji icon
+  category: AchievementCategory;
+  rarity: 'common' | 'rare' | 'legendary';
+  unlocked: boolean;
+  unlockedAt?: string;
+  progress?: number;   // 0-100
+  hint?: string;       // Hint shown when locked
+}
+
 // Default Preloaded Data
 const DEFAULT_USERS: User[] = [
   {
@@ -808,6 +823,106 @@ class ProjectJDatabase {
   public deleteTravelEntry(id: string) {
     this.travelEntries = this.travelEntries.filter(entry => entry.id !== id);
     this.saveToStorage('travel_entries', this.travelEntries);
+  }
+
+  // ---- Achievements (Computed from live data, not stored) ----
+  public getAchievements(): Achievement[] {
+    const artworks = this.artworks;
+    const characters = this.characters;
+    const worlds = this.worlds;
+    const dreams = this.dreams;
+    const travel = this.travelEntries;
+    const conversations = this.conversations;
+    const achievedDreams = dreams.filter(d => d.status === 'achieved');
+    const travelStories = travel.filter(t => t.type === 'story');
+    const travelPlans = travel.filter(t => t.type === 'plan');
+    const travelAlbums = travel.filter(t => t.type === 'album');
+    const publicArtworks = artworks.filter(a => a.visibility === 'public');
+    const childCreations = artworks.filter(a => a.created_by === 'user-child');
+
+    type A = Achievement;
+    const def = (
+      id: string, title: string, description: string, icon: string,
+      category: AchievementCategory, rarity: A['rarity'],
+      unlocked: boolean, progress?: number, hint?: string
+    ): A => ({
+      id, title, description, icon, category, rarity, unlocked,
+      unlockedAt: unlocked ? new Date().toISOString() : undefined,
+      progress, hint,
+    });
+
+    return [
+      // Creation
+      def('first-artwork', '第一幅画', '完成了第一件创作并收录进创作馆。', '🎨', 'creation', 'common',
+        childCreations.length >= 1, Math.min(100, childCreations.length * 100)),
+      def('five-artworks', '五件作品', '创作馆里已有五件作品，一个真正的创作者！', '🖼️', 'creation', 'common',
+        childCreations.length >= 5, Math.min(100, Math.round(childCreations.length / 5 * 100)),
+        `再创作 ${Math.max(0, 5 - childCreations.length)} 件`),
+      def('ten-artworks', '十件作品', '十件作品守护者，宇宙博物馆正式开张！', '🏛️', 'creation', 'rare',
+        childCreations.length >= 10, Math.min(100, Math.round(childCreations.length / 10 * 100)),
+        `再创作 ${Math.max(0, 10 - childCreations.length)} 件`),
+      def('public-sharer', '公开分享者', '至少有一件作品对外公开展示。', '📢', 'creation', 'common',
+        publicArtworks.length >= 1, publicArtworks.length >= 1 ? 100 : 0,
+        '将一件作品设为"公开"'),
+
+      // Travel
+      def('first-travel', '出发！', '记录了第一次旅行或出行计划。', '🧳', 'travel', 'common',
+        travel.length >= 1, Math.min(100, travel.length * 100)),
+      def('first-story', '游记作家', '写下了第一篇游记故事。', '✍️', 'travel', 'common',
+        travelStories.length >= 1, Math.min(100, travelStories.length * 100),
+        '添加一条"游记故事"类型的记录'),
+      def('three-cities', '三城漫游者', '足迹馆里记录了三个或以上旅程。', '🗺️', 'travel', 'rare',
+        travel.length >= 3, Math.min(100, Math.round(travel.length / 3 * 100)),
+        `还需 ${Math.max(0, 3 - travel.length)} 个记录`),
+      def('planner', '家庭参谋长', '制定了第一份正式的旅行计划文书。', '📋', 'travel', 'common',
+        travelPlans.length >= 1, Math.min(100, travelPlans.length * 100),
+        '添加一条"旅行计划"类型的记录'),
+      def('photographer', '定格时光', '创建了第一个旅行相册。', '📸', 'travel', 'common',
+        travelAlbums.length >= 1, Math.min(100, travelAlbums.length * 100),
+        '添加一条"相册相片"类型的记录'),
+
+      // World Building
+      def('first-world', '创世纪', '建立了第一个世界观框架。', '🌍', 'world', 'common',
+        worlds.length >= 1, Math.min(100, worlds.length * 100)),
+      def('first-character', '造物主', '创建了第一个角色档案。', '🧙', 'world', 'common',
+        characters.length >= 1, Math.min(100, characters.length * 100)),
+      def('three-characters', '角色缔造者', '已有三位以上角色生活在你的世界里。', '👥', 'world', 'rare',
+        characters.length >= 3, Math.min(100, Math.round(characters.length / 3 * 100)),
+        `还需 ${Math.max(0, 3 - characters.length)} 个角色`),
+
+      // Dreams
+      def('first-dream', '许下心愿', '在梦想档案里立下了第一个人生目标。', '⭐', 'dream', 'common',
+        dreams.length >= 1, Math.min(100, dreams.length * 100)),
+      def('five-dreams', '星图绘制者', '记录了五个以上的人生梦想。', '🌠', 'dream', 'rare',
+        dreams.length >= 5, Math.min(100, Math.round(dreams.length / 5 * 100)),
+        `还需 ${Math.max(0, 5 - dreams.length)} 个梦想`),
+      def('achieved-dream', '梦想成真', '第一次把梦想标记为已达成！', '🎉', 'dream', 'rare',
+        achievedDreams.length >= 1, Math.min(100, achievedDreams.length * 100),
+        '将一个梦想标记为"已达成"'),
+
+      // Social
+      def('first-chat', '共创启航', '第一次在作品或旅程下留下共创对话。', '💬', 'social', 'common',
+        conversations.length >= 1, Math.min(100, conversations.length * 100)),
+      def('ten-conversations', '对话达人', '父子共创对话已超过十条。', '📝', 'social', 'rare',
+        conversations.length >= 10, Math.min(100, Math.round(conversations.length / 10 * 100)),
+        `还需 ${Math.max(0, 10 - conversations.length)} 条对话`),
+
+      // Special
+      def('universe-builder', '宇宙构建者', '同时拥有世界观、旅行记录和梦想档案，三位一体！', '🚀', 'special', 'legendary',
+        worlds.length >= 1 && travel.length >= 1 && dreams.length >= 1,
+        Math.round(((worlds.length >= 1 ? 1 : 0) + (travel.length >= 1 ? 1 : 0) + (dreams.length >= 1 ? 1 : 0)) / 3 * 100),
+        '同时拥有世界观、足迹记录和梦想'),
+      def('nano-banana-fan', '香蕉号忠实机师', '收录了与 Nano Banana 2 相关的创作。', '🍌', 'special', 'legendary',
+        artworks.some(a => a.title.includes('香蕉') || a.tags.some(t => t.includes('香蕉'))),
+        artworks.some(a => a.title.includes('香蕉') || a.tags.some(t => t.includes('香蕉'))) ? 100 : 0,
+        '与星际香蕉号有关的创作'),
+    ];
+  }
+
+  public getAchievementStats(): { total: number; unlocked: number; percentage: number } {
+    const all = this.getAchievements();
+    const unlocked = all.filter(a => a.unlocked).length;
+    return { total: all.length, unlocked, percentage: Math.round((unlocked / all.length) * 100) };
   }
 }
 

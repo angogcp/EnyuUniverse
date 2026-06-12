@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { db, User, Artwork, TimelineEvent, Dream } from '@/lib/db';
 import { 
   Plus, Sparkles, BookOpen, Compass, 
-  Target, Calendar, ArrowRight, Library, HelpCircle, Landmark 
+  Target, Calendar, ArrowRight, Library, HelpCircle, Landmark, Trophy, MapPin
 } from 'lucide-react';
 
 export default function Home() {
@@ -13,6 +13,7 @@ export default function Home() {
   const [recentArtworks, setRecentArtworks] = useState<Artwork[]>([]);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
   const [dreams, setDreams] = useState<Dream[]>([]);
+  const [achievementStats, setAchievementStats] = useState({ total: 0, unlocked: 0, percentage: 0 });
 
   useEffect(() => {
     // Load initial states
@@ -20,6 +21,7 @@ export default function Home() {
     setRecentArtworks(db.getArtworks().slice(0, 2));
     setTimelineEvents(db.getTimelineEvents().slice(-2).reverse());
     setDreams(db.getDreams().filter(d => d.status === 'active').slice(0, 2));
+    setAchievementStats(db.getAchievementStats());
 
     // Handle updates when role changes
     const handleStorageChange = () => {
@@ -269,7 +271,40 @@ export default function Home() {
 
       </div>
 
-      {/* 3. Product Mission & Quote Card */}
+      {/* 3. Achievement & quick-link strip */}
+      {activeUser.role !== 'Guest' && (
+        <section className="rounded-xl border border-book-border bg-paper/30 p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gold/10 border border-gold/20">
+                <Trophy className="h-6 w-6 text-gold" />
+              </div>
+              <div>
+                <h4 className="font-display text-sm font-bold text-ink">成就殿堂</h4>
+                <p className="text-[11px] text-ink/50 mt-0.5">
+                  已解锁 <span className="font-bold text-terracotta">{achievementStats.unlocked}</span> / {achievementStats.total} 枚勋章
+                </p>
+                {/* mini progress bar */}
+                <div className="mt-1.5 h-1.5 w-40 overflow-hidden rounded-full bg-book-border/50">
+                  <div
+                    className="h-full rounded-full bg-terracotta transition-all duration-700"
+                    style={{ width: `${achievementStats.percentage}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+            <Link
+              href="/achievements"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-terracotta px-4 py-2 text-xs font-semibold text-parchment shadow-sm hover:bg-terracotta/90 transition-all"
+            >
+              <span>查看全部勋章</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* 4. Product Mission & Quote Card */}
       <section className="rounded-xl border border-book-border/40 bg-paper/20 p-6 text-center max-w-xl mx-auto space-y-3">
         <Landmark className="h-6 w-6 text-terracotta mx-auto opacity-70" />
         <h4 className="font-serif italic text-sm text-ink/80">

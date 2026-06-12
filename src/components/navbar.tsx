@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { db, User } from '@/lib/db';
-import { Sparkles, Library, Compass, Target, Shield, Users, Landmark, MapPin } from 'lucide-react';
+import { Sparkles, Library, Compass, Target, Shield, Users, Landmark, MapPin, Trophy } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -44,6 +44,7 @@ export default function Navbar() {
     { name: '成长年轮', href: '/timeline', icon: Landmark },
     { name: '足迹馆', href: '/travel', icon: MapPin },
     { name: '梦想档案', href: '/dreams', icon: Target },
+    { name: '成就殿堂', href: '/achievements', icon: Trophy },
   ];
 
   return (
