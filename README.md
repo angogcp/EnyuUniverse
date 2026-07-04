@@ -198,16 +198,54 @@ Raw high-resolution scans are stored in `art-work/` (git-ignored). Only optimize
 
 ---
 
-## ⚙️ Environment Variables
+## ⚙️ Environment Variables & Google Drive Sync
 
-Create `.env.local` with:
+To enable the hybrid Google Drive uploader, configure the following variables.
+
+### 1. Local Development (`.env.local`)
+Create `.env.local` in the project root:
 
 ```env
-DEEPSEEK_API_KEY=your_key_here
-DEEPSEEK_ANALYSIS_MODEL=deepseek-chat   # optional, defaults to deepseek-v4-flash
+# DeepSeek API Configuration (AI Companion / Critique)
+DEEPSEEK_API_KEY=your_deepseek_api_key
+DEEPSEEK_ANALYSIS_MODEL=deepseek-chat
+
+# Google Drive OAuth2 Credentials
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_DRIVE_PARENT_FOLDER_ID=your_shared_google_drive_folder_id
 ```
 
-All AI features gracefully degrade to rich mock responses if the key is absent.
+All AI features and Drive uploads gracefully degrade to mock offline handlers if variables are absent.
+
+### 2. Generating the Google Refresh Token
+Once `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are configured:
+1. Make sure your local server is running (`npm run dev`).
+2. Go to Google Cloud Console and add `http://localhost:3000/api/auth/callback` to the **Authorized redirect URIs** of your OAuth client.
+3. Open **[http://localhost:3000/api/auth/google](http://localhost:3000/api/auth/google)** in your browser and authorize access.
+4. The system will retrieve the `refresh_token` and automatically append it to your `.env.local` as `GOOGLE_REFRESH_TOKEN`.
+
+---
+
+## ☁️ Vercel Free-Tier Cloud Deployment
+
+When deploying EnyuUniverse to Vercel, the temporary serverless filesystem is read-only. Setting up the Google Drive integration is required to prevent files from disappearing when Vercel containers restart.
+
+### Steps to Deploy:
+1. **Push to GitHub**: Commit your codebase (credentials in `.env.local` are automatically ignored by git).
+2. **Import Project to Vercel**: Connect your GitHub repository to Vercel.
+3. **Configure Redirect URIs**:
+   - Go to Google Cloud Console > Credentials and edit your OAuth Web Client.
+   - Under **Authorized redirect URIs**, add your live Vercel domain callback path:
+     `https://<your-project-name>.vercel.app/api/auth/callback`
+4. **Add Environment Variables**:
+   In the Vercel project settings, add the following variables:
+   - `GOOGLE_CLIENT_ID`
+   - `GOOGLE_CLIENT_SECRET`
+   - `GOOGLE_DRIVE_PARENT_FOLDER_ID`
+   - `GOOGLE_REFRESH_TOKEN` (Copy the string generated in Step 2 from your local `.env.local` file)
+   - `DEEPSEEK_API_KEY` (Optional)
+5. **Redeploy**: Trigger a deploy. Your son will now be able to upload artwork directly to Google Drive without ever seeing a Google authentication prompt.
 
 ---
 

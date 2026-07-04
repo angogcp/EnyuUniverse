@@ -7,7 +7,7 @@ import { db, Artwork, User } from '@/lib/db';
 import { gdrive } from '@/lib/gdrive';
 import { 
   Plus, Search, ShieldAlert, Eye, 
-  EyeOff, Heart, MessageCircle, FileText, Image as ImageIcon 
+  EyeOff, Heart, MessageCircle, FileText, Image as ImageIcon, Trash2
 } from 'lucide-react';
 
 export default function ArtworksPage() {
@@ -169,8 +169,45 @@ function ArtworksList() {
     setImagePreview(null);
     setShowAddModal(false);
 
-    // Refresh Artwork List
-    setArtworks(db.getArtworks());
+  };
+
+  const canModify = activeUser?.role === 'Child' || activeUser?.role === 'Father';
+
+  const handleToggleVisibility = (id: string, currentVis: Artwork['visibility'], e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newVis = currentVis === 'public' ? 'private' : 'public';
+    db.updateArtwork(id, { visibility: newVis });
+    
+    // Reload artworks list
+    const allArt = db.getArtworks();
+    const user = db.getActiveUser();
+    if (user.role === 'Guest') {
+      setArtworks(allArt.filter(art => art.visibility === 'public'));
+    } else {
+      setArtworks(allArt);
+    }
+    
+    window.dispatchEvent(new Event('storage')); // Notify other components
+  };
+
+  const handleDeleteArtwork = (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm('确定要删除这件作品吗？此操作不可逆，将同时清除相关的留言记录。')) {
+      db.deleteArtwork(id);
+      
+      // Reload artworks list
+      const allArt = db.getArtworks();
+      const user = db.getActiveUser();
+      if (user.role === 'Guest') {
+        setArtworks(allArt.filter(art => art.visibility === 'public'));
+      } else {
+        setArtworks(allArt);
+      }
+      
+      window.dispatchEvent(new Event('storage')); // Notify other components
+    }
   };
 
   if (!activeUser) return null;
@@ -286,19 +323,39 @@ function ArtworksList() {
                       </span>
                       
                       {/* Visibility indicator */}
-                      <span className="flex items-center gap-1 text-[9px] font-semibold text-ink/40">
-                        {art.visibility === 'public' ? (
-                          <>
-                            <Eye className="h-3 w-3 text-sage" />
-                            <span>公开</span>
-                          </>
-                        ) : (
-                          <>
-                            <EyeOff className="h-3 w-3" />
-                            <span>私密</span>
-                          </>
-                        )}
-                      </span>
+                      {canModify ? (
+                        <button
+                          onClick={(e) => handleToggleVisibility(art.id, art.visibility, e)}
+                          className="flex items-center gap-1 text-[9px] font-semibold text-ink/50 hover:text-terracotta hover:bg-paper px-1.5 py-0.5 rounded transition-all border border-book-border/20 hover:border-book-border bg-paper/20 shrink-0"
+                          title="点击切换公开/私密"
+                        >
+                          {art.visibility === 'public' ? (
+                            <>
+                              <Eye className="h-3 w-3 text-sage" />
+                              <span>公开</span>
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="h-3 w-3 text-ink/40" />
+                              <span>私密</span>
+                            </>
+                          )}
+                        </button>
+                      ) : (
+                        <span className="flex items-center gap-1 text-[9px] font-semibold text-ink/40 shrink-0">
+                          {art.visibility === 'public' ? (
+                            <>
+                              <Eye className="h-3 w-3 text-sage" />
+                              <span>公开</span>
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="h-3 w-3" />
+                              <span>私密</span>
+                            </>
+                          )}
+                        </span>
+                      )}
                     </div>
 
                     <h3 className="font-literary text-base font-bold text-ink group-hover:text-terracotta transition-colors line-clamp-1">
@@ -321,6 +378,15 @@ function ArtworksList() {
                   </span>
                   
                   <div className="flex items-center gap-3 text-ink/50 text-[10px]">
+                    {canModify && (
+                      <button
+                        onClick={(e) => handleDeleteArtwork(art.id, e)}
+                        className="flex items-center gap-1 text-ink/30 hover:text-terracotta hover:bg-paper/85 transition-colors p-1.5 rounded"
+                        title="删除此作品"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                     <span className="flex items-center gap-1">
                       <MessageCircle className="h-3.5 w-3.5" />
                       <span>{conversationsCount}</span>

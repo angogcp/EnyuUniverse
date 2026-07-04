@@ -6,7 +6,7 @@ import { db, User } from '@/lib/db';
 import { gdrive } from '@/lib/gdrive';
 import { 
   Building2, Sword, ShieldAlert, Sparkles, HelpCircle, 
-  ArrowRight, Landmark, Compass, Eye, EyeOff, BookOpen 
+  ArrowRight, Landmark, Compass, Eye, EyeOff, BookOpen, Flame
 } from 'lucide-react';
 
 interface LabTemplate {
@@ -19,9 +19,45 @@ interface LabTemplate {
   badgeColor: string;
   prompts: string[];
   markdownTemplate: string;
+  resourceLink?: { text: string; url: string };
 }
 
 const LAB_TEMPLATES: LabTemplate[] = [
+  {
+    id: 'basketball_comic',
+    name: '漫画剧本工坊',
+    icon: Flame,
+    tagline: '提供故事脚本，用分镜与钢笔勾勒出热血篮球世界。',
+    description: '由爸爸输入故事大纲或经典比赛瞬间，由小画家发挥丰富的想象力，将文字转化为震撼人心的钢笔分镜画。',
+    colorClass: 'border-orange-200 bg-orange-50/[0.02]',
+    badgeColor: 'bg-orange-100 text-orange-700 dark:text-orange-300',
+    resourceLink: {
+      text: '《灌篮高手》漫画全集 (Google Drive)',
+      url: 'https://drive.google.com/drive/folders/16ZaJ2QPX7s_ylTVfrxVJKq6K2w35eI23'
+    },
+    prompts: [
+      '经典对决与心理博弈：这次进攻的关键冲突点是什么？防守方给主角施加了怎样的压力？',
+      '关键动作与定格画面：哪个瞬间最具张力？是拉杆、绝杀、还是封盖？',
+      '分镜设计：这一页漫画打算用几个格子？特写镜头（眼神、出手的球）如何穿插？',
+      '爸爸的脚本指令：爸爸提供了什么样的剧情主线或战术情境？'
+    ],
+    markdownTemplate: `# [篮球漫画项目名称] 脚本与创作大纲
+
+## 1. 剧情脚本 (爸爸的脚本输入)
+- **故事背景/比赛局势**：例如，比赛还剩 5 秒，落后 1 分...
+- **出场人物与对位关系**：例如，渊裕对位对方王牌防守球员...
+- **核心剧情发展**：
+
+## 2. 画面设计与分镜 (小画家的想象力)
+- **第一格（背景与氛围）**：
+- **第二格（动作前奏/冲突点）**：
+- **第三格（高潮/特写瞬间）**：
+- **第四格（结局/反响）**：
+
+## 3. 钢笔画技巧应用
+- **线条粗细划分**（人物与背景如何拉开层次）：
+- **速度线与动感表现**：`
+  },
   {
     id: 'empire',
     name: '帝国实验室',
@@ -171,7 +207,8 @@ export default function LabsPage() {
     const fileData = { name: `${title}.md`, type: 'text/markdown', contentBase64: template.markdownTemplate };
     const driveFolder = selectedLabId === 'scifi' ? 'SciFi-Lab' : 
                         selectedLabId === 'strategy' ? 'Strategy-Lab' : 
-                        selectedLabId === 'mystery' ? 'Mystery-Lab' : 'Worldbuilding';
+                        selectedLabId === 'mystery' ? 'Mystery-Lab' : 
+                        selectedLabId === 'basketball_comic' ? 'Comics-Lab' : 'Worldbuilding';
 
     const uploaded = await gdrive.uploadFile(fileData, driveFolder);
 
@@ -181,7 +218,8 @@ export default function LabsPage() {
       description: template.markdownTemplate,
       type: selectedLabId === 'scifi' ? 'sci-fi' : 
             selectedLabId === 'strategy' ? 'wargame' : 
-            selectedLabId === 'mystery' ? 'mystery' : 'worldview',
+            selectedLabId === 'mystery' ? 'mystery' : 
+            selectedLabId === 'basketball_comic' ? 'comic' : 'worldview',
       tags: [template.name, '实验室共创'],
       visibility,
       drive_file_id: uploaded.drive_file_id,
@@ -268,6 +306,20 @@ export default function LabsPage() {
                   <h3 className="font-literary text-lg font-bold text-ink">{lab.name}</h3>
                   <p className="text-xs text-ink/40 mt-0.5">{lab.tagline}</p>
                   <p className="text-xs text-ink/75 mt-2 leading-relaxed font-serif">{lab.description}</p>
+                  {lab.resourceLink && (
+                    <div className="mt-3 flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold text-ink/40">参考资源:</span>
+                      <a 
+                        href={lab.resourceLink.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-orange-600 dark:text-orange-400 hover:underline hover:text-orange-700 transition-colors"
+                      >
+                        <BookOpen className="h-3 w-3" />
+                        <span>{lab.resourceLink.text}</span>
+                      </a>
+                    </div>
+                  )}
                 </div>
 
                 {/* Prompts display */}

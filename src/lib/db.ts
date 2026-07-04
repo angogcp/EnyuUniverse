@@ -99,6 +99,18 @@ export interface TravelEntry {
   updated_at: string;
 }
 
+export interface BlogPost {
+  id: string;
+  title: string;
+  content: string; // Markdown details
+  image_url?: string;
+  location?: string; // e.g. "日本・东京" or "马来西亚・吉隆坡"
+  visibility: 'public' | 'private';
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export type AchievementCategory = 'creation' | 'travel' | 'dream' | 'world' | 'social' | 'special';
 
 export interface Achievement {
@@ -505,6 +517,39 @@ const DEFAULT_TRAVEL_ENTRIES: TravelEntry[] = [
   }
 ];
 
+const DEFAULT_BLOG_POSTS: BlogPost[] = [
+  {
+    id: 'blog-cherry-blossoms',
+    title: '大阪城的夕阳与远方的你 🌇',
+    content: `今天傍晚散步去了大阪城公园，看着夕阳余晖洒在天守阁上，非常壮丽，随手拍了一张照片。
+    
+虽然爸爸在大阪生活，渊裕在巴生滨华中学住宿，我们相隔两地，但每当看到美好的风景或是有意思的事，爸爸第一个想到的就是在这和你分享。
+    
+渊裕，这周在滨华中学的住宿生活怎么样？周五放假回妈妈家了吗？篮球训练和钢笔画这周有新的成果吗？期待看到你的手稿和留言，爸爸在大阪给你加油！`,
+    image_url: 'https://images.unsplash.com/photo-1590253465376-5c56d28b991f?auto=format&fit=crop&w=800&q=80',
+    location: '日本・大阪',
+    visibility: 'private',
+    created_by: 'user-father',
+    created_at: '2026-06-25T10:00:00Z',
+    updated_at: '2026-06-25T10:00:00Z',
+  },
+  {
+    id: 'blog-kl-practice',
+    title: '滨华中学的班级篮球赛与新画稿 🏀',
+    content: `这周在滨华中学的宿舍生活挺充实的。今天下午和班上的同学去球场打了一场激烈的班级篮球赛！
+    
+这是我今天吃完晚饭，在宿舍书桌前，用钢笔随手画的一张比赛中“封盖防守”的分镜草稿。我很想表现出防守人跳起盖帽时的肌肉张力和透视空间，但总觉得手臂的比例有点别扭。
+    
+这周末回妈妈家时，我打算把爸爸推荐的《灌篮高手》漫画拿出来，仔细看一看井上雄彦是怎么画赤木队长‘大猩猩火锅’那个分镜的！爸爸在大阪也要照顾好自己哦！`,
+    image_url: 'https://images.unsplash.com/photo-1519766304817-4f37bda74a27?auto=format&fit=crop&w=800&q=80',
+    location: '巴生滨华中学',
+    visibility: 'private',
+    created_by: 'user-child',
+    created_at: '2026-06-26T18:30:00Z',
+    updated_at: '2026-06-26T18:30:00Z',
+  }
+];
+
 // In-Memory Database Controller (Syncs to LocalStorage in Browser)
 class ProjectJDatabase {
   private users: User[] = [];
@@ -515,6 +560,7 @@ class ProjectJDatabase {
   private timelineEvents: TimelineEvent[] = [];
   private dreams: Dream[] = [];
   private travelEntries: TravelEntry[] = [];
+  private blogPosts: BlogPost[] = [];
 
   constructor() {
     this.loadFromStorage();
@@ -535,6 +581,7 @@ class ProjectJDatabase {
       this.timelineEvents = [...DEFAULT_TIMELINE_EVENTS];
       this.dreams = [...DEFAULT_DREAMS];
       this.travelEntries = [...DEFAULT_TRAVEL_ENTRIES];
+      this.blogPosts = [...DEFAULT_BLOG_POSTS];
       return;
     }
 
@@ -556,6 +603,7 @@ class ProjectJDatabase {
       this.timelineEvents = getOrInit('timeline_events', DEFAULT_TIMELINE_EVENTS);
       this.dreams = getOrInit('dreams', DEFAULT_DREAMS);
       this.travelEntries = getOrInit('travel_entries', DEFAULT_TRAVEL_ENTRIES);
+      this.blogPosts = getOrInit('blog_posts', DEFAULT_BLOG_POSTS);
 
       // ── Data Migration: always sync user display names/emails to current defaults ──
       // This ensures stale localStorage data (e.g. old name "小杰 (Leo)") is corrected.
@@ -587,6 +635,7 @@ class ProjectJDatabase {
       this.timelineEvents = [...DEFAULT_TIMELINE_EVENTS];
       this.dreams = [...DEFAULT_DREAMS];
       this.travelEntries = [...DEFAULT_TRAVEL_ENTRIES];
+      this.blogPosts = [...DEFAULT_BLOG_POSTS];
     }
   }
 
@@ -846,6 +895,49 @@ class ProjectJDatabase {
     this.saveToStorage('travel_entries', this.travelEntries);
   }
 
+  // Blog Posts APIs
+  public getBlogPosts(): BlogPost[] {
+    return this.blogPosts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }
+
+  public getBlogPostById(id: string): BlogPost | undefined {
+    return this.blogPosts.find(post => post.id === id);
+  }
+
+  public createBlogPost(post: Omit<BlogPost, 'id' | 'created_by' | 'created_at' | 'updated_at'>): BlogPost {
+    const activeUser = this.getActiveUser();
+    const newPost: BlogPost = {
+      ...post,
+      id: `blog-${Math.random().toString(36).substr(2, 9)}`,
+      created_by: activeUser.id,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    this.blogPosts.push(newPost);
+    this.saveToStorage('blog_posts', this.blogPosts);
+    return newPost;
+  }
+
+  public updateBlogPost(id: string, updates: Partial<BlogPost>): BlogPost {
+    const index = this.blogPosts.findIndex(post => post.id === id);
+    if (index === -1) throw new Error('Blog post not found');
+    this.blogPosts[index] = {
+      ...this.blogPosts[index],
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+    this.saveToStorage('blog_posts', this.blogPosts);
+    return this.blogPosts[index];
+  }
+
+  public deleteBlogPost(id: string) {
+    this.blogPosts = this.blogPosts.filter(post => post.id !== id);
+    this.saveToStorage('blog_posts', this.blogPosts);
+    // clean up related conversations
+    this.conversations = this.conversations.filter(c => c.artwork_id !== id);
+    this.saveToStorage('conversations', this.conversations);
+  }
+
   // ---- Achievements (Computed from live data, not stored) ----
   public getAchievements(): Achievement[] {
     const artworks = this.artworks;
@@ -937,6 +1029,14 @@ class ProjectJDatabase {
         artworks.some(a => a.title.includes('香蕉') || a.tags.some(t => t.includes('香蕉'))),
         artworks.some(a => a.title.includes('香蕉') || a.tags.some(t => t.includes('香蕉'))) ? 100 : 0,
         '与星际香蕉号有关的创作'),
+      def('basketball-spirit', '教练，我想画篮球！', '成功开辟并记录了以《灌篮高手》或热血篮球为主题的漫画故事。', '🏀', 'special', 'legendary',
+        artworks.some(a => (a.title.includes('篮球') || a.title.includes('灌篮') || a.tags.some(t => t.includes('篮球') || t.includes('漫画') || t.includes('分镜'))) && a.type === 'comic'),
+        artworks.some(a => (a.title.includes('篮球') || a.title.includes('灌篮') || a.tags.some(t => t.includes('篮球') || t.includes('漫画') || t.includes('分镜'))) && a.type === 'comic') ? 100 : 0,
+        '在实验室中使用“漫画剧本工坊”生成一篇以篮球为主题的漫画手稿'),
+      def('youth-motivation', '青春的侧影', '在成长过程中，将内心纯真的动力转化为自我提升与创作的力量。', '🌸', 'special', 'legendary',
+        dreams.some(d => d.content.includes('动力') || d.content.includes('进步') || d.content.includes('改变') || d.content.includes('女生') || d.content.includes('暗恋') || d.reflection !== undefined),
+        dreams.some(d => d.content.includes('动力') || d.content.includes('进步') || d.content.includes('改变') || d.content.includes('女生') || d.content.includes('暗恋') || d.reflection !== undefined) ? 100 : 0,
+        '记录一个关于自我提升或成长的梦想档案（带追问反思）'),
     ];
   }
 

@@ -31,9 +31,39 @@ const MOCK_FOLDERS: Record<string, string> = {
   'Timeline': 'folder-timeline',
   'Private': 'folder-private',
   'Public': 'folder-public',
+  'Blog': 'folder-blog',
 };
 
 class GoogleDriveService {
+  constructor() {
+    this.cleanupLocalStorage();
+  }
+
+  private cleanupLocalStorage() {
+    if (!this.isBrowser()) return;
+    try {
+      const key = 'project_j_gdrive_files';
+      const stored = localStorage.getItem(key);
+      if (stored) {
+        const files = JSON.parse(stored);
+        let changed = false;
+        const cleaned = files.map((f: any) => {
+          if (f.content) {
+            delete f.content;
+            changed = true;
+          }
+          return f;
+        });
+        if (changed) {
+          localStorage.setItem(key, JSON.stringify(cleaned));
+          console.log('Cleaned up large base64 image data from project_j_gdrive_files in localStorage.');
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to clean up localStorage gdrive files:', e);
+    }
+  }
+
   private isBrowser(): boolean {
     return typeof window !== 'undefined';
   }
@@ -64,15 +94,58 @@ class GoogleDriveService {
     file: { name: string; type: string; contentBase64?: string },
     folderName: keyof typeof MOCK_FOLDERS | string
   ): Promise<{ drive_file_id: string; drive_preview_url: string; drive_web_link: string }> {
-    if (this.isConfigured()) {
-      // In a real server action, we would write to Google Drive API here
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ file, folderName }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server returned status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Sync local file list if stored in localStorage for general query consistency
+      if (this.isBrowser()) {
+        const fileId = data.drive_file_id;
+        const parentFolderId = MOCK_FOLDERS[folderName] || 'folder-private';
+        const newFile: GoogleDriveFile = {
+          id: fileId,
+          name: file.name,
+          mimeType: file.type,
+          parentFolderId,
+          webViewLink: data.drive_web_link,
+          previewUrl: data.drive_preview_url,
+          createdAt: new Date().toISOString(),
+        };
+
+        const stored = localStorage.getItem('project_j_gdrive_files');
+        const files: GoogleDriveFile[] = stored ? JSON.parse(stored) : [];
+        
+        // Prevent duplicate
+        if (!files.some(f => f.id === fileId)) {
+          files.push(newFile);
+          localStorage.setItem('project_j_gdrive_files', JSON.stringify(files));
+        }
+      }
+
       return {
-        drive_file_id: 'real-drive-' + Math.random().toString(36).substr(2, 9),
-        drive_preview_url: 'https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?q=80&w=600&auto=format&fit=crop',
-        drive_web_link: 'https://drive.google.com/open?id=mock-real-link',
+        drive_file_id: data.drive_file_id,
+        drive_preview_url: data.drive_preview_url,
+        drive_web_link: data.drive_web_link,
       };
-    } else {
-      // Mock File Upload
+
+    } catch (e) {
+      console.warn('Failed to upload via API route, falling back to mock upload:', e);
+      
+      // Fallback Mock File Upload
       const fileId = 'drive-mock-' + Math.random().toString(36).substr(2, 9);
       const parentFolderId = MOCK_FOLDERS[folderName] || 'folder-private';
       
@@ -93,7 +166,6 @@ class GoogleDriveService {
         parentFolderId,
         webViewLink: `https://drive.google.com/file/d/${fileId}/view?usp=drivesdk`,
         previewUrl,
-        content: file.contentBase64,
         createdAt: new Date().toISOString(),
       };
 

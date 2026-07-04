@@ -107,6 +107,13 @@ export default function Home() {
                   <Compass className="h-4 w-4 text-sage" />
                   <span>管理世界观</span>
                 </Link>
+                <Link 
+                  href="/blog"
+                  className="inline-flex items-center gap-2 rounded-lg border border-book-border bg-parchment px-4 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-paper"
+                >
+                  <BookOpen className="h-4 w-4 text-orange-500" />
+                  <span>双城日志</span>
+                </Link>
               </>
             )}
 
@@ -125,6 +132,13 @@ export default function Home() {
                 >
                   <Calendar className="h-4 w-4 text-sage" />
                   <span>记录成长节点</span>
+                </Link>
+                <Link 
+                  href="/blog"
+                  className="inline-flex items-center gap-2 rounded-lg border border-book-border bg-parchment px-4 py-2.5 text-sm font-semibold text-ink transition-all hover:bg-paper"
+                >
+                  <BookOpen className="h-4 w-4 text-orange-500" />
+                  <span>双城日志</span>
                 </Link>
               </>
             )}

@@ -30,8 +30,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
+!.env.local.example
 
 # vercel
 .vercel
@@ -43,3 +44,6 @@ next-env.d.ts
 # artwork originals and duplicates
 /art-work/old/
 /art-work/duplicates_backup/
+
+# public user uploads
+/public/uploads/
