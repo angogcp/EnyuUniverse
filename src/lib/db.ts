@@ -130,10 +130,10 @@ export interface Achievement {
 const DEFAULT_USERS: User[] = [
   {
     id: 'user-father',
-    name: '爸爸 (Enyu)',
-    email: 'enyu.father@example.com',
+    name: 'QuakOnn',
+    email: 'quakonn.father@example.com',
     role: 'Father',
-    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=father',
+    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=QuakOnn',
     created_at: '2024-01-01T00:00:00Z',
   },
   {
@@ -146,10 +146,10 @@ const DEFAULT_USERS: User[] = [
   },
   {
     id: 'user-mother',
-    name: '妈妈 (Sarah)',
-    email: 'sarah.mother@example.com',
+    name: 'Fumiko',
+    email: 'fumiko.mother@example.com',
     role: 'Mother',
-    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=mother',
+    avatar_url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Fumiko',
     created_at: '2025-01-01T00:00:00Z',
   },
 ];

@@ -112,9 +112,9 @@ export default function ArtworkDetailPage() {
   }
 
   // Find sender helpers
+  const fatherName = users.find(u => u.role === 'Father')?.name || '爸爸';
+
   const getUserName = (userId: string) => {
-    if (userId === 'user-child') return '渊裕 (Enyu)';
-    if (userId === 'user-father') return '爸爸';
     return users.find(u => u.id === userId)?.name || '未知成员';
   };
 
@@ -266,7 +266,7 @@ export default function ArtworkDetailPage() {
                 <div className="flex flex-wrap items-center gap-3.5 text-[10px] font-semibold text-ink/40">
                   <span className="flex items-center gap-1">
                     <UserIcon className="h-3.5 w-3.5" />
-                    <span>创作者: {artwork.created_by === 'user-child' ? '渊裕' : '爸爸'}</span>
+                    <span>创作者: {getUserName(artwork.created_by)}</span>
                   </span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
@@ -461,7 +461,7 @@ export default function ArtworkDetailPage() {
                     <div className="h-full flex flex-col items-center justify-center text-center text-ink/30 px-4">
                       <MessageSquare className="h-8 w-8 text-ink/10 mb-2" />
                       <h4 className="text-xs font-bold">暂无对话记录</h4>
-                      <p className="text-[10px] text-ink/40 mt-0.5">爸爸可以在这里提问（如“它有什么弱点？”），孩子来补充设定，一起丰富这个宇宙！</p>
+                      <p className="text-[10px] text-ink/40 mt-0.5">{fatherName}可以在这里提问（如“它有什么弱点？”），孩子来补充设定，一起丰富这个宇宙！</p>
                     </div>
                   )}
                 </div>
@@ -471,7 +471,7 @@ export default function ArtworkDetailPage() {
                   <form onSubmit={handleSendMessage} className="border-t border-book-border/50 pt-3 mt-3 flex gap-2">
                     <input
                       type="text"
-                      placeholder={`${activeUser.role === 'Father' ? '爸爸，在这里向孩子提问...' : '渊裕，回复爸爸或者补充设定...'}`}
+                      placeholder={`${activeUser.role === 'Father' ? `${fatherName}，在这里向孩子提问...` : `渊裕，回复 ${fatherName} 或者补充设定...`}`}
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       className="flex-1 rounded-lg border border-book-border bg-paper/60 px-3.5 py-2 text-xs font-medium text-ink placeholder:text-ink/30 focus:outline-none focus:ring-1 focus:ring-terracotta/50"
@@ -485,7 +485,7 @@ export default function ArtworkDetailPage() {
                   </form>
                 ) : (
                   <div className="border-t border-book-border/50 pt-3 mt-3 text-center text-[10px] text-ink/40 italic">
-                    只有父亲和渊裕可以发表共创对话。
+                    只有 {fatherName} 和渊裕可以发表共创对话。
                   </div>
                 )}
 

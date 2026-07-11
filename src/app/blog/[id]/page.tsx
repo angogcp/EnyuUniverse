@@ -77,10 +77,10 @@ export default function BlogDetailPage() {
   }
 
   // Find sender helpers
+  const fatherName = users.find(u => u.role === 'Father')?.name || '爸爸';
+  const motherName = users.find(u => u.role === 'Mother')?.name || '妈妈';
+
   const getUserName = (userId: string) => {
-    if (userId === 'user-child') return '渊裕 (Enyu)';
-    if (userId === 'user-father') return '爸爸';
-    if (userId === 'user-mother') return '妈妈';
     return users.find(u => u.id === userId)?.name || '未知成员';
   };
 
@@ -125,7 +125,7 @@ export default function BlogDetailPage() {
 
   const isAuthor = activeUser.id === post.created_by;
   const canModify = activeUser.role === 'Child' || activeUser.role === 'Father';
-  const authorName = post.created_by === 'user-father' ? '爸爸' : '渊裕 (Enyu)';
+  const authorName = getUserName(post.created_by);
   const authorAvatar = post.created_by === 'user-father' 
     ? 'https://api.dicebear.com/7.x/bottts/svg?seed=father'
     : 'https://api.dicebear.com/7.x/bottts/svg?seed=enyu';
@@ -387,7 +387,7 @@ export default function BlogDetailPage() {
           <UserIcon className="h-8 w-8 text-ink/20 mx-auto mb-2" />
           <h4 className="text-xs font-bold text-ink/70">评论区已隐藏</h4>
           <p className="text-[10px] text-ink/40 mt-1 leading-relaxed">
-            仅家庭内阁成员（渊裕、爸爸、妈妈）可以查看双城共创对话板并留言互动。
+            仅家庭内阁成员（渊裕、{fatherName}、{motherName}）可以查看双城共创对话板并留言互动。
           </p>
         </section>
       )}

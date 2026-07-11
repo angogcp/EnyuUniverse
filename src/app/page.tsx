@@ -44,13 +44,13 @@ export default function Home() {
         };
       case 'Father':
         return {
-          title: "欢迎回来，爸爸。",
+          title: `欢迎回来，${activeUser.name}。`,
           subtitle: "今天，想去看看孩子创造的新世界吗？",
           desc: "查看渊裕上传的新创作，在共创区进行一场深度的父子对话，或者帮他梳理人生的成长年轮。"
         };
       case 'Mother':
         return {
-          title: "欢迎回来，妈妈。",
+          title: `欢迎回来，${activeUser.name}。`,
           subtitle: "一起来见证孩子的奇妙宇宙吧！",
           desc: "浏览孩子公开的精美画作与成长足迹，留下鼓励的话语，陪伴他的想象力一同飞翔。"
         };

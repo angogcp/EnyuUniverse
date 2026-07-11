@@ -14,6 +14,7 @@ import {
 export default function BlogListPage() {
   const [activeUser, setActiveUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   
   // Create Form States
   const [showAddModal, setShowAddModal] = useState(false);
@@ -31,6 +32,7 @@ export default function BlogListPage() {
   useEffect(() => {
     setActiveUser(db.getActiveUser());
     setPosts(db.getBlogPosts());
+    setUsers(db.getUsers());
 
     // Auto-set default location based on role
     const user = db.getActiveUser();
@@ -43,6 +45,7 @@ export default function BlogListPage() {
       const u = db.getActiveUser();
       setActiveUser(u);
       setPosts(db.getBlogPosts());
+      setUsers(db.getUsers());
       if (u) {
         if (u.role === 'Father') setLocation('日本・大阪');
         else if (u.role === 'Child') setLocation('巴生滨华中学');
@@ -166,8 +169,8 @@ export default function BlogListPage() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
           {visiblePosts.map((post) => {
             const commentsCount = db.getConversations(post.id).length;
-            const isAuthor = activeUser.id === post.created_by;
-            const authorName = post.created_by === 'user-father' ? '爸爸' : '渊裕 (Enyu)';
+            const isAuthor = activeUser?.id === post.created_by;
+            const authorName = users.find(u => u.id === post.created_by)?.name || '未知成员';
             const authorAvatar = post.created_by === 'user-father' 
               ? 'https://api.dicebear.com/7.x/bottts/svg?seed=father'
               : 'https://api.dicebear.com/7.x/bottts/svg?seed=enyu';

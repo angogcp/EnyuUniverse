@@ -78,9 +78,9 @@ export default function TravelDetailPage() {
   }
 
   // Find sender helpers
+  const fatherName = users.find(u => u.role === 'Father')?.name || '爸爸';
+
   const getUserName = (userId: string) => {
-    if (userId === 'user-child') return '渊裕 (Enyu)';
-    if (userId === 'user-father') return '爸爸';
     return users.find(u => u.id === userId)?.name || '未知成员';
   };
 
@@ -351,7 +351,7 @@ export default function TravelDetailPage() {
                   <div className="h-full flex flex-col items-center justify-center text-center text-ink/30 px-4">
                     <MessageSquare className="h-8 w-8 text-ink/10 mb-2" />
                     <h4 className="text-xs font-bold">暂无足迹对话</h4>
-                    <p className="text-[10px] text-ink/40 mt-0.5">爸爸和渊裕可以在这里聊天——爸爸提问：“你最喜欢泰山的哪部分？”，孩子来回答，共同记录成长记忆！</p>
+                    <p className="text-[10px] text-ink/40 mt-0.5">{fatherName}和渊裕可以在这里聊天——{fatherName}提问：“你最喜欢泰山的哪部分？”，孩子来回答，共同记录成长记忆！</p>
                   </div>
                 )}
               </div>
@@ -361,7 +361,7 @@ export default function TravelDetailPage() {
                 <form onSubmit={handleSendMessage} className="border-t border-book-border/50 pt-3 mt-3 flex gap-2">
                   <input
                     type="text"
-                    placeholder={`${activeUser.role === 'Father' ? '爸爸，给这趟旅程留言或计划建议...' : '渊裕，写写你对这趟旅行的想法...'}`}
+                    placeholder={`${activeUser.role === 'Father' ? `${fatherName}，给这趟旅程留言或计划建议...` : `渊裕，写写你对这趟旅行的想法...`}`}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     className="flex-1 rounded-lg border border-book-border bg-paper/60 px-3.5 py-2 text-xs font-medium text-ink placeholder:text-ink/30 focus:outline-none focus:ring-1 focus:ring-terracotta/50"
@@ -375,7 +375,7 @@ export default function TravelDetailPage() {
                 </form>
               ) : (
                 <div className="border-t border-book-border/50 pt-3 mt-3 text-center text-[10px] text-ink/40 italic">
-                  只有父亲和渊裕可以发表留言对话。
+                  只有 {fatherName} 和渊裕可以发表留言对话。
                 </div>
               )}
 
